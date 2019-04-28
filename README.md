@@ -26,7 +26,17 @@ $ npm i runtime-define-webpack-plugin
 ## Usage
 
 ```js
-import runtime_define_webpack_plugin from 'runtime-define-webpack-plugin'
+const RuntimeDefinePlugin = require('runtime-define-webpack-plugin')
+
+const plugin = new RuntimeDefinePlugin({
+  '__DEV__': true,
+  'process.env.NODE_DEBUG': false
+})
+
+webpack.config.plugins.push(plugin)
+
+// And after that we can change the global constants by
+plugin.set('process.env.NODE_DEBUG', true)
 ```
 
 ## License

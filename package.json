@@ -48,5 +48,9 @@
     "@ostai/eslint-config": "^3.0.0",
     "eslint-plugin-import": "^2.16.0",
     "eslint": "^5.16.0"
+  },
+  "dependencies": {
+    "core-util-is": "^1.0.2",
+    "err-object": "^4.3.1"
   }
 }

@@ -1,5 +1,5 @@
 
-const {resolve} = require('path')
+const {resolve, join} = require('path')
 const {isString, isArray, isFunction} = require('core-util-is')
 
 const {error} = require('./error')
@@ -57,6 +57,7 @@ module.exports = class RuntimeEnvironmentPlugin {
 
     this._dependents = new Set()
     this._chunks = Object.create(null)
+    this._dests = new Set()
 
     this._writer = new Writer({
       envs,
@@ -72,6 +73,17 @@ module.exports = class RuntimeEnvironmentPlugin {
     dependencies.add(dependency)
   }
 
+  _generateDests (outputPath) {
+    for (const [output, deps] of this._chunks) {
+      for (const dep of deps) {
+        if (dep === this._envFilepath) {
+          this._dests.add(join(outputPath, output))
+          break
+        }
+      }
+    }
+  }
+
   apply (compiler) {
     const {DefinePlugin} = this._webpackModule
     const {runtimeValue} = DefinePlugin
@@ -80,13 +92,21 @@ module.exports = class RuntimeEnvironmentPlugin {
 
     new DefinePlugin({
       [id]: runtimeValue(({module}) => {
+        // Mark the dependents
         this._dependents.add(module.userRequest)
+
+        // Actually, it is unchanged
         return id
       })
     }).apply(compiler)
 
     compiler.hooks.beforeRun.tapPromise(NAME, async () => {
       await this._writer.save()
+    })
+
+    compiler.hooks.afterEmit.tap(NAME, compilation => {
+      const {outputPath} = compilation.compiler
+      this._generateDests(outputPath)
     })
 
     compiler.hooks.compilation.tap(NAME, compilation => {
@@ -109,6 +129,6 @@ module.exports = class RuntimeEnvironmentPlugin {
   }
 
   async save () {
-    return this._writer.save()
+    return this._writer.updateFiles(this._dests)
   }
 }

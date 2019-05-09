@@ -1,7 +1,10 @@
 
 const {resolve} = require('path')
 const {isString, isArray, isFunction} = require('core-util-is')
+
 const {error} = require('./error')
+const {walk} = require('./chunks-walker')
+const Writer = require('./writer')
 
 let webpack
 
@@ -22,11 +25,14 @@ const getWebpack = () => {
   }
 }
 
+const NAME = 'RuntimeEnvironmentPlugin'
+
 module.exports = class RuntimeEnvironmentPlugin {
   constructor ({
     envs,
     webpack: webpackModule = getWebpack(),
-    envFilepath
+    envFilepath,
+    getterIdentifier
   } = {}) {
     if (!isString(envFilepath)) {
       throw error('INVALID_ENV_FILE_PATH', envFilepath)
@@ -40,22 +46,69 @@ module.exports = class RuntimeEnvironmentPlugin {
       throw error('INVALID_WEBPACK', webpackModule)
     }
 
+    if (!isString(getterIdentifier)) {
+      throw error('INVALID_GETTER_IDENTIFIER', getterIdentifier)
+    }
+
     this._webpackModule = webpackModule
     this._envs = envs
     this._envFilepath = resolve(envFilepath)
+    this._getterIdentifier = getterIdentifier
+
+    this._dependents = new Set()
+    this._chunks = Object.create(null)
+
+    this._writer = new Writer({
+      envs,
+      envFilepath
+    })
   }
 
-  _createDefinePluginEnvs () {
-    const {DefinePlugin} = this._webpackModule
-    const {runtimeValue} = DefinePlugin
+  _addChunk (chunkOutput, dependency) {
+    const dependencies = this._chunks[chunkOutput] || (
+      this._chunks[chunkOutput] = new Set()
+    )
 
-
+    dependencies.add(dependency)
   }
 
   apply (compiler) {
     const {DefinePlugin} = this._webpackModule
-    new DefinePlugin({
+    const {runtimeValue} = DefinePlugin
 
+    const id = this._getterIdentifier
+
+    new DefinePlugin({
+      [id]: runtimeValue(({module}) => {
+        this._dependents.add(module.userRequest)
+        return id
+      })
     }).apply(compiler)
+
+    compiler.hooks.beforeRun.tapPromise(NAME, async () => {
+      await this._writer.save()
+    })
+
+    compiler.hooks.compilation.tap(NAME, compilation => {
+      compilation.hooks.afterOptimizeChunkModules.tap(NAME, chunks => {
+        walk(chunks, (chunkOutput, dependency) => {
+          this._addChunk(chunkOutput, dependency)
+        })
+      })
+    })
+  }
+
+  reload (...args) {
+    this._writer.reload(...args)
+    return this
+  }
+
+  set (key, value) {
+    this._writer.set(key, value)
+    return this
+  }
+
+  async save () {
+    return this._writer.save()
   }
 }

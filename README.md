@@ -27,12 +27,14 @@ $ npm i runtime-environment-webpack-plugin
 
 This plugin must be used with the babel plugin [babel-plugin-transform-environment-variables-to-getters](https://github.com/kaelzhang/babel-plugin-transform-environment-variables-to-getters)
 
+Be careful, only use this plugin for **BROWSER-SIDE** webpack compilation.
+
 `.babelrc`
 
 ```json
 {
   "plugins": ["transform-environment-variables-to-getters", {
-    "require": "__PROCESS_ENVS_GETTER__",
+    "envFilepath": "/path/to/envs.js",
     "include": ["NODE_DEBUG"]
   }]
 }
@@ -67,7 +69,7 @@ plugin.reload('NODE_DEBUG')
 - **options** `Object`
   - **webpack?** `webpack` The `webpack` to use by `RuntimeEnvironmentPlugin`. If not specified, `RuntimeEnvironmentPlugin` will try to `require('webpack')`
   - **envFilepath** `path` the file that environment variables will be save into.
-  - **requireIndentifier** `string` the argument identifier of the `require` as the getter of environment variables
+  - **getterIdentifier?** `string='__getProcessEnvs'` the identifier name of the env getter method
 
 ## License
 

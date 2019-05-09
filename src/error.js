@@ -28,6 +28,10 @@ TE('ENVS', 'options.envs must be an array of strings')
 
 TE('WEBPACK', 'options.webpack must be a function which actually should be the module.exports of the "webpack" package')
 
+TE('REQUIRE_LITERAL_STRING', 'options.requireLiteralString must be a string')
+
+E('KEY_NOT_ALLOWED', 'key "%s" is not among options.envs', RangeError)
+
 module.exports = {
   error
 }

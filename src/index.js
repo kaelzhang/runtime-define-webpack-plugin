@@ -26,13 +26,14 @@ const getWebpack = () => {
 }
 
 const NAME = 'RuntimeEnvironmentPlugin'
+const DEFAULT_GETTER_IDENTIFIER = '__getProcessEnvs'
 
 module.exports = class RuntimeEnvironmentPlugin {
   constructor ({
     envs,
     webpack: webpackModule = getWebpack(),
     envFilepath,
-    getterIdentifier
+    getterIdentifier = DEFAULT_GETTER_IDENTIFIER
   } = {}) {
     if (!isString(envFilepath)) {
       throw error('INVALID_ENV_FILE_PATH', envFilepath)
@@ -74,7 +75,7 @@ module.exports = class RuntimeEnvironmentPlugin {
   }
 
   _generateDests (outputPath) {
-    for (const [output, deps] of this._chunks) {
+    for (const [output, deps] of Object.entries(this._chunks)) {
       for (const dep of deps) {
         if (dep === this._envFilepath) {
           this._dests.add(join(outputPath, output))

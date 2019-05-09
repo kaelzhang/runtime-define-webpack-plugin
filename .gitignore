@@ -1,3 +1,6 @@
+/test/fixtures/envs.js
+/test/output/
+
 # Node, Coverage, NPM
 /.nyc_output
 /coverage

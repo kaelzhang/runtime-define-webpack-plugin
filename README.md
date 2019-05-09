@@ -61,6 +61,9 @@ plugin.reload()
 
 // Reload a single environment key
 plugin.reload('NODE_DEBUG')
+
+// Save changes to files
+await plugin.save()
 ```
 
 ## new RuntimeEnvironmentPlugin(envs, options)

@@ -1,4 +1,4 @@
-const {resolve, basename} = require('path')
+const {resolve} = require('path')
 
 const IGNORE = /node_modules/
 

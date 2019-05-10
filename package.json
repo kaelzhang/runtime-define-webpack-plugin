@@ -1,6 +1,6 @@
 {
   "name": "runtime-environment-webpack-plugin",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "The webpack RuntimeDefinePlugin allows you to create global constants which can be configured at runtime.",
   "main": "src/index.js",
   "scripts": {

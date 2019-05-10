@@ -1,10 +1,13 @@
 
 const {resolve, join} = require('path')
+const {inspect, debuglog} = require('util')
 const {isString, isArray, isFunction} = require('core-util-is')
 
 const {error} = require('./error')
-const {walk} = require('./chunks-walker')
+const Chunk = require('./chunk')
 const Writer = require('./writer')
+
+const log = debuglog('runtime-environment-webpack-plugin')
 
 let webpack
 
@@ -57,7 +60,7 @@ module.exports = class RuntimeEnvironmentPlugin {
     this._getterIdentifier = getterIdentifier
 
     this._dependents = new Set()
-    this._chunks = Object.create(null)
+    this._chunks = []
     this._dests = new Set()
 
     this._writer = new Writer({
@@ -66,23 +69,22 @@ module.exports = class RuntimeEnvironmentPlugin {
     })
   }
 
-  _addChunk (chunkOutput, dependency) {
-    const dependencies = this._chunks[chunkOutput] || (
-      this._chunks[chunkOutput] = new Set()
-    )
-
-    dependencies.add(dependency)
+  _addChunk (rawChunk) {
+    const chunk = new Chunk(rawChunk)
+    this._chunks.push(chunk)
   }
 
   _generateDests (outputPath) {
-    for (const [output, deps] of Object.entries(this._chunks)) {
-      for (const dep of deps) {
+    for (const chunk of this._chunks) {
+      for (const dep of chunk.dependencies) {
         if (dep === this._envFilepath) {
-          this._dests.add(join(outputPath, output))
+          this._dests.add(join(outputPath, chunk.name))
           break
         }
       }
     }
+
+    log('dependents: %s', inspect(this._dests))
   }
 
   apply (compiler) {
@@ -112,8 +114,8 @@ module.exports = class RuntimeEnvironmentPlugin {
 
     compiler.hooks.compilation.tap(NAME, compilation => {
       compilation.hooks.afterOptimizeChunkModules.tap(NAME, chunks => {
-        walk(chunks, (chunkOutput, dependency) => {
-          this._addChunk(chunkOutput, dependency)
+        chunks.forEach(chunk => {
+          this._addChunk(chunk.entryModule)
         })
       })
     })

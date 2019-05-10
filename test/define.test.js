@@ -61,7 +61,7 @@ test('integrated', async t => {
   plugin.reload()
   await plugin.save()
 
-  // runFile()
+  runFile()
 
   t.pass()
 })

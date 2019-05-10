@@ -36,15 +36,9 @@ class Chunk {
 
     this.dependencies.add(userRequest)
 
-    const {
-      dependencies
-    } = module
-
-    if (!dependencies) {
-      return
-    }
-
-    dependencies.forEach(dep => {
+    // `module.dependencies` is always an array
+    // Ref: webpack/lib/DependenciesBlock.js
+    module.dependencies.forEach(dep => {
       this._decend(dep.module)
     })
   }

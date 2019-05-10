@@ -4,7 +4,9 @@ const {
   runOutput,
   clean,
   plugin
-} = require('./prepare')('foo.js')
+} = require('./prepare')({
+  filename: 'foo.js'
+})
 
 test.before(clean)
 

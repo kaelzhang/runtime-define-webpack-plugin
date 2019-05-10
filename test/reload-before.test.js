@@ -10,10 +10,12 @@ const {
 
 test.before(clean)
 
-test('set before load', async t => {
-  plugin.set('BAZ', 'baz')
+test('reload before load', async t => {
+  process.env.BAZ = 'baz'
+  plugin.reload('BAZ')
+  process.env.BAZ = 'baz2'
+  // compile should not use the process.env, but only plugin.values
   await compile()
-  t.is(process.env.BAZ, undefined, 'process.env.BAZ should be undefined')
   process.env.BAZ = 'baz'
 
   // Setup

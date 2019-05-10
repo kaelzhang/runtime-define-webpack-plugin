@@ -38,22 +38,27 @@ module.exports = class Writer {
   }
 
   _loadOne (key) {
-    if (this._needSet(key)) {
+    this._checkKey(key)
+
+    if (!this._checkLoad(key)) {
       this._set(key, process.env[key])
     }
   }
 
-  _needSet (key) {
-    if (!this._values) {
-      this._loadAll()
-      return false
-    }
-
+  _checkKey (key) {
     if (!this._envs.includes(key)) {
       throw error('KEY_NOT_ALLOWED', key)
     }
+  }
 
-    return true
+  // Returns `boolean` whether need to load
+  _checkLoad () {
+    if (!this._values) {
+      this._loadAll()
+      return true
+    }
+
+    return false
   }
 
   _set (key, value) {
@@ -61,7 +66,8 @@ module.exports = class Writer {
   }
 
   set (key, value) {
-    this._needSet(key)
+    this._checkKey(key)
+    this._checkLoad()
     this._set(key, value)
   }
 

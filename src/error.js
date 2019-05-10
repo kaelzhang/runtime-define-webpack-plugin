@@ -22,7 +22,7 @@ TE('ENV_FILE_PATH', 'options.envFilepath must be a string of path')
 
 TE('ENVS', 'options.envs must be an array of strings')
 
-E('KEY_NOT_ALLOWED', 'key "%s" is not among options.envs', RangeError)
+E('KEY_NOT_ALLOWED', 'key "%s" is not one of options.envs', RangeError)
 
 module.exports = {
   error

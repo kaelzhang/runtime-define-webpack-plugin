@@ -23,7 +23,9 @@ const createRunFile = file => () => {
   require(file)
 }
 
-const prepare = (filename, entry = 'seed.js') => {
+const prepare = ({
+  filename
+}) => {
   process.env.FOO = 'foo'
   process.env.BAR = 'bar'
   process.env.ENTRY_FILE = filename
@@ -44,7 +46,7 @@ const prepare = (filename, entry = 'seed.js') => {
     plugins: [
       plugin
     ],
-    entry: fixture(entry),
+    entry: fixture(filename),
     output: {
       path: output(),
       filename

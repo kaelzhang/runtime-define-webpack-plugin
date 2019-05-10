@@ -14,3 +14,20 @@ ERRORS.forEach(([options, code]) => {
     t.throws(() => new RuntimeEnvironmentPlugin(options), {code})
   })
 })
+
+test('reload or set error', t => {
+  const plugin = new RuntimeEnvironmentPlugin({
+    envs: ['FOO'],
+    envFilepath: 'haha'
+  })
+
+  const code = 'KEY_NOT_ALLOWED'
+
+  t.throws(() => plugin.set('BAR', 'bar'), {
+    code
+  })
+
+  t.throws(() => plugin.reload('BAR'), {
+    code
+  })
+})

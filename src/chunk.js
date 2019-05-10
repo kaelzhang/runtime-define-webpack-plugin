@@ -7,8 +7,6 @@ class Chunk {
     this._ignore = ignore
 
     const {
-      // The changed output name of the module
-      name,
       // The absolute path of of the entry
       userRequest
     } = entryModule
@@ -16,8 +14,8 @@ class Chunk {
     this.dependencies = new Set()
 
     const request = resolve(userRequest)
-    this.userRequest = request
-    this.name = name || basename(request)
+    this.request = request
+    this.name = undefined
 
     // entryModule is already an issuer module
     this._decend(entryModule)

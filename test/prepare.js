@@ -78,7 +78,8 @@ const prepare = ({
       ])
       .catch(NOOP)
     },
-    plugin
+    plugin,
+    output
   }
 }
 

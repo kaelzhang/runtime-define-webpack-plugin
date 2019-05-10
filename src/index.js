@@ -1,7 +1,7 @@
 
 const {resolve, join} = require('path')
 const {inspect, debuglog} = require('util')
-const {isString, isArray, isFunction} = require('core-util-is')
+const {isString, isArray} = require('core-util-is')
 
 const {error} = require('./error')
 const Chunk = require('./chunk')
@@ -9,34 +9,12 @@ const Writer = require('./writer')
 
 const log = debuglog('runtime-environment-webpack-plugin')
 
-let webpack
-
-const getWebpack = () => {
-  if (webpack) {
-    return webpack
-  }
-
-  try {
-    // eslint-disable-next-line
-    return webpack = require('webpack')
-  } catch (err) {
-    if (err.code === 'MODULE_NOT_FOUND') {
-      throw error('WEBPACK_REQUIRED')
-    }
-
-    throw error('WEBPACK_REQUIRE_ERROR', err.stack)
-  }
-}
-
 const NAME = 'RuntimeEnvironmentPlugin'
-const DEFAULT_GETTER_IDENTIFIER = '__getProcessEnvs'
 
 module.exports = class RuntimeEnvironmentPlugin {
   constructor ({
     envs,
-    webpack: webpackModule = getWebpack(),
-    envFilepath,
-    getterIdentifier = DEFAULT_GETTER_IDENTIFIER
+    envFilepath
   } = {}) {
     if (!isString(envFilepath)) {
       throw error('INVALID_ENV_FILE_PATH', envFilepath)
@@ -46,20 +24,9 @@ module.exports = class RuntimeEnvironmentPlugin {
       throw error('INVALID_ENVS', envs)
     }
 
-    if (!isFunction(webpackModule)) {
-      throw error('INVALID_WEBPACK', webpackModule)
-    }
-
-    if (!isString(getterIdentifier)) {
-      throw error('INVALID_GETTER_IDENTIFIER', getterIdentifier)
-    }
-
-    this._webpackModule = webpackModule
     this._envs = envs
     this._envFilepath = resolve(envFilepath)
-    this._getterIdentifier = getterIdentifier
 
-    this._dependents = new Set()
     this._chunks = []
     this._dests = new Set()
 
@@ -88,21 +55,6 @@ module.exports = class RuntimeEnvironmentPlugin {
   }
 
   apply (compiler) {
-    const {DefinePlugin} = this._webpackModule
-    const {runtimeValue} = DefinePlugin
-
-    const id = this._getterIdentifier
-
-    new DefinePlugin({
-      [id]: runtimeValue(({module}) => {
-        // Mark the dependents
-        this._dependents.add(module.userRequest)
-
-        // Actually, it is unchanged
-        return id
-      })
-    }).apply(compiler)
-
     compiler.hooks.beforeRun.tapPromise(NAME, async () => {
       await this._writer.save()
     })

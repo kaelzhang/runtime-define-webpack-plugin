@@ -66,13 +66,11 @@ plugin.reload('NODE_DEBUG')
 await plugin.save()
 ```
 
-## new RuntimeEnvironmentPlugin(envs, options)
+## new RuntimeEnvironmentPlugin(options)
 
-- **envs** `Object` the same as the first parameter of `new webpack.DefinePlugin`
 - **options** `Object`
-  - **webpack?** `webpack` The `webpack` to use by `RuntimeEnvironmentPlugin`. If not specified, `RuntimeEnvironmentPlugin` will try to `require('webpack')`
+  - **envs** `Object` the same as the first parameter of `new webpack.DefinePlugin`
   - **envFilepath** `path` the file that environment variables will be save into.
-  - **getterIdentifier?** `string='__getProcessEnvs'` the identifier name of the env getter method
 
 ## License
 

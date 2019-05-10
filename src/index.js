@@ -16,12 +16,12 @@ module.exports = class RuntimeEnvironmentPlugin {
     envs,
     envFilepath
   } = {}) {
-    if (!isString(envFilepath)) {
-      throw error('INVALID_ENV_FILE_PATH', envFilepath)
-    }
-
     if (!isArray(envs) || !envs.every(isString)) {
       throw error('INVALID_ENVS', envs)
+    }
+
+    if (!isString(envFilepath)) {
+      throw error('INVALID_ENV_FILE_PATH', envFilepath)
     }
 
     this._envs = envs

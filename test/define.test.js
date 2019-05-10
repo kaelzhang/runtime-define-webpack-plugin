@@ -1,67 +1,38 @@
 const test = require('ava')
-const path = require('path')
-const webpack = require('webpack')
-const fs = require('fs-extra')
+const {
+  compile,
+  runOutput,
+  clean,
+  plugin
+} = require('./prepare')('foo.js')
 
-// const log = require('util').debuglog('runtime-environment-webpack-plugin')
-const RuntimeEnvironmentPlugin = require('..')
-
-const fixture = (...args) => path.join(__dirname, 'fixtures', ...args)
-const output = (...args) => path.join(__dirname, 'output', ...args)
-
-const run = compiler => new Promise((resolve, reject) => {
-  compiler.run(err => {
-    if (err) {
-      return reject(err)
-    }
-    resolve()
-  })
-})
-
-const NOOP = () => {}
-const createRunFile = file => () => {
-  delete require.cache[file]
-  require(file)
-}
-
-test.before(() => fs.remove(output()).catch(NOOP))
+test.before(clean)
 
 test('integrated', async t => {
-  process.env.FOO = 'foo'
-  process.env.BAR = 'bar'
+  await compile()
 
-  const plugin = new RuntimeEnvironmentPlugin({
-    envs: [
-      'FOO',
-      'BAR',
-      'BAZ'
-    ],
-    envFilepath: fixture('envs.js')
-  })
+  // Setup
+  runOutput()
 
-  const compiler = webpack({
-    plugins: [
-      plugin
-    ],
-    entry: fixture('foo.js'),
-    output: {
-      path: output(),
-      filename: 'foo.js'
-    },
-    target: 'node'
-  })
-
-  await run(compiler)
-
-  const runFile = createRunFile(output('foo.js'))
-
-  runFile()
-
+  // Reload all
   process.env.BAZ = 'baz'
   plugin.reload()
   await plugin.save()
+  runOutput()
 
-  runFile()
+  // Reload one
+  process.env.FOO = 'foo2'
+  process.env.BAR = 'baz2'
+  plugin.reload('BAR')
+  await plugin.save()
+  process.env.FOO = 'foo'
+  runOutput()
+
+  // Set one
+  plugin.set('BAZ', 'baz3')
+  await plugin.save()
+  process.env.BAZ = 'baz3'
+  runOutput()
 
   t.pass()
 })

@@ -2,7 +2,7 @@
 const {get} = require('object-access')
 
 // eslint-disable-next-line
-const __getProcessEnvs = require('./envs')
+const __getProcessEnvs = require(`./envs/${process.env.ENTRY_FILE}`)
 
 const ENVS = ['FOO', 'BAR', 'BAZ']
 

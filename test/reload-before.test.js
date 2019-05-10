@@ -5,7 +5,7 @@ const {
   clean,
   plugin
 } = require('./prepare')({
-  filename: 'foo2.js'
+  filename: 'foo3.js'
 })
 
 test.before(clean)

@@ -15,7 +15,7 @@
 
 # runtime-environment-webpack-plugin
 
-The webpack RuntimeDefinePlugin allows you to create global constants which can be configured at runtime.
+The webpack RuntimeDefinePlugin allows you to create global constants which can be configured at runtime, even after the asset(s) have been emitted to output directory by webpack.
 
 ## Install
 
@@ -43,34 +43,76 @@ Be careful, only use this plugin for **BROWSER-SIDE** webpack compilation.
 ```js
 const RuntimeEnvironmentPlugin = require('runtime-environment-webpack-plugin')
 
+const envFilepath = '/path/to/envs.js'
 const plugin = new RuntimeEnvironmentPlugin({
   envs: [
     'NODE_DEBUG',
     'NODE_ENV'
   ],
-  envFilepath: '/path/to/envs.js'
+  envFilepath
 })
 
-webpack.config.plugins.push(plugin)
+webpackConfig.plugins.push(plugin)
 
-// And after that we can change the global constants by
-plugin.set('NODE_DEBUG', '')
+// Run webpack
+webpack(webpackConfig).run(() => {
 
-// Reload all variables to the latest of the process.env
-plugin.reload()
+  // And after that we can change the global constants by
+  plugin.set('NODE_DEBUG', '')
 
-// Reload a single environment key
-plugin.reload('NODE_DEBUG')
+  // Reload all variables to the latest of the process.env
+  plugin.reload()
 
-// Save changes to files
-await plugin.save()
+  // Reload a single environment key
+  plugin.reload('NODE_DEBUG')
+
+  // Save changes to files
+  plugin.save().then(() => {
+    // The content of the chunks has been changed
+  })
+})
 ```
+
+### How does it work?
+
+`RuntimeEnvironmentPlugin` will generate and output a commonjs module to the path `options.envFilepath`.
+
+And the module exports a function which returns the env object.
+
+```js
+// After webpack has been run
+
+console.log(require(envFilepath).NODE_DEBUG)
+// will print `process.env.NODE_DEBUG` at the compiling time of webpack.
+```
+
+`RuntimeEnvironmentPlugin` tracks all chunks that depend on the module `envFilepath` and will change the content of each chunk if we reload or set the environment variables.
 
 ## new RuntimeEnvironmentPlugin(options)
 
 - **options** `Object`
   - **envs** `Object` the same as the first parameter of `new webpack.DefinePlugin`
   - **envFilepath** `path` the file that environment variables will be save into.
+
+### plugin.reload(): this
+
+Reload all bundled code slices which are original from `options.envFilepath` with the current `process.env`
+
+### plugin.reload(key): this
+
+Reload one env key
+
+### plugin.set(key): this
+
+Set an env key.
+
+### await plugin.save()
+
+Save the changes to the chunk files.
+
+### getter: plugin.outputs
+
+Returns `Set<string>` a set of file paths each of which depends on `options.envFilepath`
 
 ## License
 

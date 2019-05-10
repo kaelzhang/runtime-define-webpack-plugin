@@ -73,6 +73,10 @@ module.exports = class RuntimeEnvironmentPlugin {
     })
   }
 
+  get outputs () {
+    return this._dests
+  }
+
   reload (...args) {
     this._writer.reload(...args)
     return this

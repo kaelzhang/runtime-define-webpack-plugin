@@ -18,13 +18,14 @@ const run = compiler => new Promise((resolve, reject) => {
   })
 })
 
-const createRunFile = file => () => {
+const requireNoCache = file => {
   delete require.cache[file]
   require(file)
 }
 
 const prepare = ({
-  filename
+  filename,
+  outputFilename = filename
 }) => {
   process.env.FOO = 'foo'
   process.env.BAR = 'bar'
@@ -49,18 +50,27 @@ const prepare = ({
     entry: fixture(filename),
     output: {
       path: output(),
-      filename
+      filename: outputFilename
     },
     target: 'node'
   })
-
-  const runOutput = createRunFile(outputFilepath)
 
   return {
     compile () {
       return run(compiler)
     },
-    runOutput,
+    runOutput () {
+      let hasRun = false
+
+      for (const file of plugin.outputs) {
+        hasRun = true
+        requireNoCache(file)
+      }
+
+      if (!hasRun) {
+        throw new Error('nothing in plugin.outputs')
+      }
+    },
     clean () {
       return Promise.all([
         fs.remove(outputFilepath),
